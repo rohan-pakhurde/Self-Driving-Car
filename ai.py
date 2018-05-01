@@ -51,8 +51,44 @@ class ReplayMemory (Object):
             del self.memory[0];
             
     def sample(self, batch_size):
+        #zip function is similar to reshape function
+        #we will use it to convert (s1,a1,r1) and (s2,a2,r2) into (s1,s2)(a1,a2)(r1,r2)
         samples = zip(*random.sample(self.memory, batch_size))
         return map(lambda x: Variable(torch.cat(x,0)), samples)
 
-
 # Implementing Deep Q Learning
+
+class Dqn():
+    
+    def __init__(self, input_size, nb_action, gamma):
+        self.gamma = gamma
+        #reward_window is a sliding window of last 100 mean rewards.
+        #it is initiatlized to an empty list since we will append the mean reward at every iteration
+        self.reward_window = []
+        #Now we create tey neural network
+        self.model = Network(input_size, nb_action)
+        self.memory = ReplayMemory(100000)
+        #torch.optim module of torch contrains all the tools to perform stochastic gradient decent.
+        #Adam is the optimizer we are chosing for this self driving car
+        #while inititalizing the Adam optimizer we are connecting it to the neural net we have created above by using model.parameters()
+        #and applying learning rate lr = 0.001; this is not too large so that the AI gets enough time to learn
+        self.optimizer = optim.Adam(self.model.parameters(), lr = 0.001)
+        #last_state will a vector of 5 dimensions 
+        #5 dimensions are = [input signals from the 3 sensors (left, straight, right), oritntation, -orientation]
+        #Next, this vector will need to be more then vector for PyTorch
+        #Specifically it will need to be a torch tensor
+        #Also it will need to have an additional dimension corresponding to the Batch
+        #This is because altough the last state will be the input of the neural network, 
+        #while working with a neural networks in general (tensorflow, keras, Pytorch) teh input vector has to be in a Batch.
+        #this batch dimension will need to be the first dimension of the input
+        #unsqueeze(0) will add the additional dimension to the start
+        self.last_state = torch.Tensor(input_size).unsqueeze(0)
+        self.last_action = 0
+        self.last_reward = 0
+        
+    
+    
+    
+    
+    
+    
