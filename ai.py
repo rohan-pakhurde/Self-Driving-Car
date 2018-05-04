@@ -39,7 +39,7 @@ class Network(nn.Module):
 
 # Implementing Experience Replay
         
-class ReplayMemory (object):
+class ReplayMemory(object):
     
     def __init__(self, capacity):
         self.capacity = capacity
@@ -87,7 +87,7 @@ class Dqn():
         self.last_reward = 0
         
     def select_action(self, state):
-        probs = F.softmax(self.model(Variable(state, volatile = True))*0) # T(temperature parameter) = 7
+        probs = F.softmax(self.model(Variable(state, volatile = True))*100) # T(temperature parameter) = 7
         action = probs.multinomial()
         return action.data[0,0]
     
@@ -97,7 +97,7 @@ class Dqn():
         target = self.gamma*next_outputs + batch_reward
         td_loss = F.smooth_l1_loss(outputs, target)
         self.optimizer.zero_grad()
-        td_loss.backward(retail_variables = True)
+        td_loss.backward(retain_variables = True)
         self.optimizer.step()
     
     def update(self, reward, new_signal):
@@ -106,7 +106,8 @@ class Dqn():
         self.memory.push((self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([self.last_reward])))
         action = self.select_action(new_state)
         if len(self.memory.memory) > 100:
-            batch_state, batch_next_state, batch_reward, batch_action = self.memory.sample(100)
+            #batch_state, batch_next_state, batch_reward, batch_action = self.memory.sample(100)
+            batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(100)
             self.learn(batch_state, batch_next_state, batch_reward, batch_action)
         self.last_action = action
         self.last_state = new_state
